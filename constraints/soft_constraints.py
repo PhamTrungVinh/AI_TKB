@@ -7,6 +7,7 @@ Mỗi hàm trả về penalty (số nguyên >= 0):
     > 0 = mức độ vi phạm (penalty càng cao càng tệ)
 
 Score tổng hợp = Σ(weight × penalty) (càng thấp càng tốt).
+1 ngày có 10 tiết (sáng: 5, chiều: 5)
 """
 
 from __future__ import annotations
@@ -23,22 +24,19 @@ if TYPE_CHECKING:
 
 DEFAULT_WEIGHTS: dict[str, int] = {
     "teacher_idle_gap":           3,   # Giáo viên có tiết trống giữa các buổi dạy
-    "avoid_last_period":          2,   # Môn khó xếp vào tiết cuối
+    "avoid_last_period":          3,   # Môn khó xếp vào tiết đầu/cuối buổi (gộp SC-2 + SC-7 cũ, weight 2+1)
     "uneven_distribution":        2,   # Môn học phân bố không đều trong tuần
     "teacher_overload_per_day":   4,   # Giáo viên dạy quá nhiều tiết liên tiếp
     "class_overload_per_day":     3,   # Lớp học quá nhiều tiết trong ngày
     "teacher_consecutive":        1,   # Giáo viên có >= N tiết liên tiếp
-    "preferred_morning_subjects": 1,   # Môn khó không được ưu tiên buổi sáng
 }
 
-# Môn học "khó" hoặc cần tập trung cao (id) — cấu hình theo trường
+# Môn học "khó"
 HEAVY_SUBJECT_IDS: set[str] = {"MATH", "PHYSICS", "CHEMISTRY", "LITERATURE"}
 
-# Tiết được coi là "cuối buổi" (nên tránh môn khó)
-LATE_PERIODS: set[int] = {8, 9, 10}
-
-# Tiết buổi sáng (ưu tiên môn khó)
-MORNING_PERIODS: set[int] = {1, 2, 3, 4, 5}
+# Tiết đầu hoặc cuối buổi (nên tránh môn khó).
+# Phần bù của tập này là {3,4,5,6,7,8} — khoảng giữa ngày, nơi ưu tiên môn khó.
+EARLY_LATE_PERIODS: set[int] = {1, 2, 9, 10}
 
 # Ngưỡng số tiết liên tiếp tối đa của giáo viên
 MAX_CONSECUTIVE_TEACHER = 3
@@ -121,17 +119,17 @@ def teacher_idle_gap(assignments: list["Assignment"], data: dict) -> int:
 
 
 # ────────────────────────────────────────────────────────────────────────────
-# SC-2: Tránh xếp môn khó vào tiết cuối
+# SC-2: Tránh xếp môn khó vào tiết đầu hoặc cuối buổi
 # ────────────────────────────────────────────────────────────────────────────
 
 def avoid_last_period(assignments: list["Assignment"], data: dict) -> int:
     """
-    SC-2: Phạt khi môn khó được xếp vào các tiết cuối buổi.
+    SC-2: Phạt khi môn khó được xếp vào tiết đầu hoặc cuối buổi
     """
     return sum(
         1 for a in assignments
         if a.subject.id in HEAVY_SUBJECT_IDS
-        and a.session.period in LATE_PERIODS
+        and a.session.period in EARLY_LATE_PERIODS
     )
 
 
@@ -142,8 +140,8 @@ def avoid_last_period(assignments: list["Assignment"], data: dict) -> int:
 def uneven_distribution(assignments: list["Assignment"], data: dict) -> int:
     """
     SC-3: Phạt khi các tiết của cùng một môn/lớp bị dồn vào ít ngày.
-    Lý tưởng: mỗi ngày học tối đa 1 tiết mỗi môn (hoặc phân đều).
-    Penalty = số tiết vượt quá 1 tiết/ngày cho mỗi (lớp, môn).
+    Lý tưởng: mỗi ngày học tối đa 2 tiết mỗi môn (hoặc phân đều).
+    Penalty = số tiết vượt quá 2 tiết/ngày cho mỗi (lớp, môn).
     """
     total_penalty = 0
     # {(class_id, subject_id, day): count}
@@ -151,8 +149,8 @@ def uneven_distribution(assignments: list["Assignment"], data: dict) -> int:
     for a in assignments:
         counter[(a.class_id, a.subject.id, a.session.day)] += 1
     for count in counter.values():
-        if count > 1:
-            total_penalty += (count - 1)
+        if count > 2:
+            total_penalty += (count - 2)
     return total_penalty
 
 
@@ -210,22 +208,6 @@ def class_overload_per_day(assignments: list["Assignment"], data: dict) -> int:
 
 
 # ────────────────────────────────────────────────────────────────────────────
-# SC-7: Ưu tiên môn khó vào buổi sáng
-# ────────────────────────────────────────────────────────────────────────────
-
-def preferred_morning_subjects(assignments: list["Assignment"], data: dict) -> int:
-    """
-    SC-7: Phạt khi môn khó KHÔNG được xếp vào buổi sáng.
-    Khuyến khích xếp các môn cần tập trung vào tiết đầu ngày.
-    """
-    return sum(
-        1 for a in assignments
-        if a.subject.id in HEAVY_SUBJECT_IDS
-        and a.session.period not in MORNING_PERIODS
-    )
-
-
-# ────────────────────────────────────────────────────────────────────────────
 # Gộp tất cả soft constraints
 # ────────────────────────────────────────────────────────────────────────────
 
@@ -236,7 +218,6 @@ ALL_SOFT_CONSTRAINTS: dict[str, callable] = {
     "teacher_consecutive":        teacher_consecutive,
     "teacher_overload_per_day":   teacher_overload_per_day,
     "class_overload_per_day":     class_overload_per_day,
-    "preferred_morning_subjects": preferred_morning_subjects,
 }
 
 
