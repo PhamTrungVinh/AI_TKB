@@ -97,7 +97,7 @@ def _count_consecutive_runs(periods: list[int], max_run: int) -> int:
     return violations
 
 
-DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri"]
 
 
 # ────────────────────────────────────────────────────────────────────────────

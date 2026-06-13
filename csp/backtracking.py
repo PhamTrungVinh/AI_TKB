@@ -28,9 +28,9 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from models.assignment import Assignment
 from models.session import Session
 
-from csp.ac3 import Value, build_initial_domains, run_ac3
-from csp.forward_checking import forward_check, forward_check_with_propagation
-from csp.heuristics import select_variable, order_domain_values, compatible
+from ac3 import Value, build_initial_domains, run_ac3
+from forward_checking import forward_check, forward_check_with_propagation
+from heuristics import select_variable, order_domain_values, compatible
 
 
 # ────────────────────────────────────────────────────────────────────────────

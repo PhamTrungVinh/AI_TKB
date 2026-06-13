@@ -18,10 +18,10 @@ from __future__ import annotations
 import copy
 from typing import TYPE_CHECKING
 
-from csp.heuristics import are_constrained, compatible
+from heuristics import are_constrained, compatible
 
 if TYPE_CHECKING:
-    from csp.ac3 import Value
+    from ac3 import Value
 
 
 def forward_check(task: dict,

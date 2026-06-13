@@ -15,7 +15,7 @@ import copy
 from typing import NamedTuple
 from collections import deque
 
-from csp.heuristics import are_constrained, compatible
+from heuristics import are_constrained, compatible
 
 
 # ────────────────────────────────────────────────────────────────────────────
@@ -48,7 +48,7 @@ def build_initial_domains(tasks: list[dict],
     """
     Khởi tạo domain cho từng task.
 
-    Domain của một task = tất cả Value(teacher, room, day, period) thoả:
+    Domain của một task = tất cả Value(teacher, room, day, period) thoả man:
       - teacher ∈ candidate_teacher_ids của task
       - room    ∈ candidate_room_ids của task
       - (day, period) không nằm trong unavailable_slots của teacher  → HC-4
