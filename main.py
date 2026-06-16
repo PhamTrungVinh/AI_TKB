@@ -56,11 +56,12 @@ def main():
     print("Số task cần xếp:", len(tasks))
 
     solver = make_solver(
-        tasks=tasks,
-        parsed_data=data,
-        preset="balanced",
-        time_limit=300
-    )
+    tasks=tasks,
+    parsed_data=data,
+    preset="fast",
+    
+    time_limit=300
+)
 
     assignments = solver.solve()
 
