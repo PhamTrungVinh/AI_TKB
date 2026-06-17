@@ -81,6 +81,7 @@ class CSPSolver:
         self.use_degree  = use_degree
         self.use_lcv     = use_lcv
         self.time_limit  = time_limit
+        self.solution_map = None
 
         # Lookup nhanh theo task_id
         self.task_map: dict[str, dict] = {t["task_id"]: t for t in tasks}
@@ -159,6 +160,7 @@ class CSPSolver:
             return None
 
         self.stats["status"] = "solved"
+        self.solution_map = result
         assignments = self._build_assignments(result)
         print(f"[CSP] ✔ Tìm được lời giải với {len(assignments)} assignments.")
         return assignments
@@ -282,6 +284,12 @@ class CSPSolver:
 
     def _record_time(self) -> None:
         self.stats["solve_time_sec"] = round(time.time() - self._start_time, 3)
+
+    def build_assignments_from_solution(
+        self,
+        solution,
+    ):
+        return self._build_assignments(solution)
 
 
 # ────────────────────────────────────────────────────────────────────────────

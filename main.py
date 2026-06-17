@@ -14,6 +14,9 @@ from csp.backtracking import make_solver
 from output.export_excel import export_schedule
 from output.statistics import print_statistics
 
+from ga.ga_runner import run_ga
+from csp.ac3 import build_initial_domains
+
 
 def build_assignment_tasks(data):
     tasks = []
@@ -70,8 +73,40 @@ def main():
         return
 
     solver.print_stats()
-    print_statistics(assignments, data)
-    export_schedule(assignments, "output/timetable.xlsx")
+
+    csp_solution = solver.solution_map
+
+    domains = build_initial_domains(
+        tasks,
+        data,
+    )
+
+    print("[GA] Đang tối ưu soft constraints...")
+
+    best_solution, best_fitness = run_ga(
+        tasks=tasks,
+        domains=domains,
+        parsed_data=data,
+        initial_solution=csp_solution,
+
+        generations=100,
+        population_size=30,
+    )
+
+    print(f"[GA] Best fitness = {best_fitness}")
+
+    best_assignments = solver.build_assignments_from_solution(
+        best_solution
+    )
+
+    print_statistics(best_assignments, data)
+
+    export_schedule(
+        best_assignments,
+        "output/timetable.xlsx"
+    )
+
+
 
 
 if __name__ == "__main__":

@@ -203,3 +203,28 @@ def is_feasible(assignment: "Assignment",
                 data: dict) -> bool:
     """Trả về True nếu tất cả hard constraints thoả mãn."""
     return all(fn(assignment, existing, data) for fn in ALL_HARD_CONSTRAINTS)
+
+def is_global_feasible(
+    assignments: list["Assignment"],
+    data: dict,
+) -> bool:
+    """
+    Kiểm tra toàn bộ timetable.
+
+    Dùng cho Genetic Algorithm.
+    """
+
+    existing = []
+
+    for assignment in assignments:
+
+        if not is_feasible(
+            assignment,
+            existing,
+            data,
+        ):
+            return False
+
+        existing.append(assignment)
+
+    return True
