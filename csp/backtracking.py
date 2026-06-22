@@ -137,6 +137,7 @@ class CSPSolver:
             self.stats["ac3_pruned"] = pruned
             print(f"[CSP] AC-3 hoàn tất: loại bỏ {pruned:,} giá trị "
                   f"({total_after:,} còn lại)")
+            self.domains = domains
 
         # ── Bước 3: Backtracking ─────────────────────────────────────────────
         print("[CSP] Bắt đầu backtracking...")

@@ -204,27 +204,64 @@ def is_feasible(assignment: "Assignment",
     """Trả về True nếu tất cả hard constraints thoả mãn."""
     return all(fn(assignment, existing, data) for fn in ALL_HARD_CONSTRAINTS)
 
-def is_global_feasible(
-    assignments: list["Assignment"],
-    data: dict,
-) -> bool:
-    """
-    Kiểm tra toàn bộ timetable.
+def is_global_feasible(assignments: list["Assignment"], data: dict) -> bool:
+    """Kiểm tra toàn bộ timetable — không phụ thuộc thứ tự."""
+    
+    # HC-1: Teacher conflict
+    teacher_slots = set()
+    for a in assignments:
+        key = (a.teacher.id, a.session.day, a.session.period)
+        if key in teacher_slots:
+            return False
+        teacher_slots.add(key)
 
-    Dùng cho Genetic Algorithm.
-    """
+    # HC-2: Room conflict
+    room_slots = set()
+    for a in assignments:
+        key = (a.room.id, a.session.day, a.session.period)
+        if key in room_slots:
+            return False
+        room_slots.add(key)
 
-    existing = []
+    # HC-3: Class conflict
+    class_slots = set()
+    for a in assignments:
+        key = (a.class_id, a.session.day, a.session.period)
+        if key in class_slots:
+            return False
+        class_slots.add(key)
 
-    for assignment in assignments:
+    # HC-4: Teacher available
+    for a in assignments:
+        for unavail in a.teacher.unavailable_slots:
+            if unavail.day == a.session.day and unavail.period == a.session.period:
+                return False
 
-        if not is_feasible(
-            assignment,
-            existing,
-            data,
-        ):
+    # HC-5: Room capacity
+    for a in assignments:
+        class_info = data["classes"].get(a.class_id)
+        if class_info is None or a.room.capacity < class_info["size"]:
             return False
 
-        existing.append(assignment)
+    # HC-6: Teacher qualified
+    for a in assignments:
+        if a.subject.id not in {s.id for s in a.teacher.subjects}:
+            return False
+
+    # HC-7: Subject periods không vượt quá quy định
+    from collections import Counter
+    subject_count = Counter((a.class_id, a.subject.id) for a in assignments)
+    for a in assignments:
+        key = (a.class_id, a.subject.id)
+        if subject_count[key] > a.subject.periods_per_week:
+            return False
+
+    # HC-8: Không học cùng môn 2 lần/ngày
+    class_subject_day = set()
+    for a in assignments:
+        key = (a.class_id, a.subject.id, a.session.day)
+        if key in class_subject_day:
+            return False
+        class_subject_day.add(key)
 
     return True

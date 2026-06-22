@@ -76,10 +76,7 @@ def main():
 
     csp_solution = solver.solution_map
 
-    domains = build_initial_domains(
-        tasks,
-        data,
-    )
+    domains = solver.domains
 
     print("[GA] Đang tối ưu soft constraints...")
 
