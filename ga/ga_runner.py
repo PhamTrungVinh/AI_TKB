@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import pygad
 
-from chromosome import (
+from .chromosome import (
     build_gene_space,
     solution_to_chromosome,
     chromosome_to_solution,

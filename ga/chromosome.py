@@ -103,10 +103,8 @@ def chromosome_to_solution(
 
         domain = domains[task_id]
 
-        if gene < 0 or gene >= len(domain):
-            raise ValueError(
-                f"Gene={gene} vượt domain của task {task_id}"
-            )
+        gene = int(round(gene))
+        gene = max(0, min(gene, len(domain) - 1))
 
         solution[task_id] = domain[gene]
 
